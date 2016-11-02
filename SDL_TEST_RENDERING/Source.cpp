@@ -1,6 +1,5 @@
 #pragma comment(lib, "SDL/lib/x86/SDL2.lib")
 #pragma comment(lib, "runtimeobject.lib")
-#define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <iostream>
 #include <string>
