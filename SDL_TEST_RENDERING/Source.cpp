@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-enum KeyPressSurface {
+enum keyPressTexture {
     KEY_PRESS_SURFACE_DEFAULT,
     KEY_PRESS_SURFACE_UP,
     KEY_PRESS_SURFACE_DOWN,
@@ -18,10 +18,10 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 SDL_Window* window = NULL;
-SDL_Surface* screenSurface = NULL;
-SDL_Surface* splash = NULL;
-SDL_Surface* keyPressSurface[KEY_PRESS_SURFACE_COUNT];
-SDL_Surface* currentSurface = NULL;
+//SDL_Surface* screenSurface = NULL;
+SDL_Texture* splash = NULL;
+SDL_Texture* keyPressTexture[KEY_PRESS_SURFACE_COUNT];
+//SDL_Surface* currentSurface = NULL;
 SDL_Texture* currentTexture = NULL;
 SDL_Renderer* renderman = NULL;
 
@@ -31,7 +31,7 @@ void close();
 SDL_Texture* loadTexture(std::string path);
 SDL_Surface* loadSurface(std::string path);
 bool surfaceFailure(SDL_Surface* surface);
-std::vector<int> keyPressStack;
+bool textureFailure(SDL_Texture* texture);
 
 int main(int argc, char* args[]) {
     std::cout << "Welcome, to ZOMBOCOM.\n";
@@ -47,15 +47,15 @@ int main(int argc, char* args[]) {
 
             SDL_Event e;
             int splashtime = 10000;
-            currentSurface = keyPressSurface[KEY_PRESS_SURFACE_DEFAULT];
+            currentTexture = keyPressTexture[KEY_PRESS_SURFACE_DEFAULT];
 
             std::cout << "Preparing to take user input.\n";
 
-            static SDL_Rect screenRekt;
+            /*static SDL_Rect screenRekt;
             screenRekt.x = 0;
             screenRekt.y = 0;
             screenRekt.w = SCREEN_WIDTH;
-            screenRekt.h = SCREEN_HEIGHT;
+            screenRekt.h = SCREEN_HEIGHT;*/
 
             while (!quit) { //Main loop
                 if(SDL_PollEvent(&e) != 0) {
@@ -65,35 +65,38 @@ int main(int argc, char* args[]) {
                     }
                 }
                 //Clear Screen
-                SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+                //SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+                SDL_RenderClear(renderman);
 
                 if (splashtime > 0) { //Splash
-                    SDL_BlitSurface(splash, NULL, screenSurface, NULL);
+                    //SDL_BlitSurface(splash, NULL, screenSurface, NULL);
+                    SDL_RenderCopy(renderman, splash, NULL, NULL);
                     splashtime--;
                 }
                 else if (splashtime == 0) {
-                    currentSurface = keyPressSurface[KEY_PRESS_SURFACE_DEFAULT];
+                    currentTexture = keyPressTexture[KEY_PRESS_SURFACE_DEFAULT];
                         if (e.type == SDL_KEYDOWN) {
                             switch (e.key.keysym.sym) {
                             case SDLK_UP:
-                                currentSurface = keyPressSurface[KEY_PRESS_SURFACE_UP];
+                                currentTexture = keyPressTexture[KEY_PRESS_SURFACE_UP];
                                 break;
                             case SDLK_DOWN:
-                                currentSurface = keyPressSurface[KEY_PRESS_SURFACE_DOWN];
+                                currentTexture = keyPressTexture[KEY_PRESS_SURFACE_DOWN];
                                 break;
                             case SDLK_LEFT:
-                                currentSurface = keyPressSurface[KEY_PRESS_SURFACE_LEFT];
+                                currentTexture = keyPressTexture[KEY_PRESS_SURFACE_LEFT];
                                 break;
                             case SDLK_RIGHT:
-                                currentSurface = keyPressSurface[KEY_PRESS_SURFACE_RIGHT];
+                                currentTexture = keyPressTexture[KEY_PRESS_SURFACE_RIGHT];
                                 break;
                             }
                         }
 
-                    SDL_BlitScaled(currentSurface, NULL, screenSurface, &screenRekt);
-
+                    //SDL_BlitScaled(currentSurface, NULL, screenSurface, &screenRekt);
+                        SDL_RenderCopy(renderman, currentTexture, NULL, NULL);
                 }
-                SDL_UpdateWindowSurface(window);
+                //SDL_UpdateWindowSurface(window);
+                SDL_RenderPresent(renderman);
             }
         }
     }
@@ -142,31 +145,41 @@ bool surfaceFailure(SDL_Surface* surface) {
     }
 }
 
+bool textureFailure(SDL_Texture* texture) {
+    if (texture == NULL) {
+        std::cout << "Unable to load image!" << std::endl;
+        return true; //Failure!
+    }
+    else {
+        return false;
+    }
+}
+
 bool loadMedia() {
 	bool success = true;
     //Load bmp
-	splash = loadSurface("bmp/splash.bmp");
-    if (surfaceFailure(splash)) {
+	splash = loadTexture("bmp/splash.bmp");
+    if (textureFailure(splash)) {
         success = false;
     }
-    keyPressSurface[KEY_PRESS_SURFACE_DEFAULT] = loadSurface("bmp/prompt.bmp");
-    if (surfaceFailure(keyPressSurface[KEY_PRESS_SURFACE_DEFAULT])) {
+    keyPressTexture[KEY_PRESS_SURFACE_DEFAULT] = loadTexture("bmp/prompt.bmp");
+    if (textureFailure(keyPressTexture[KEY_PRESS_SURFACE_DEFAULT])) {
         success = false;
     }
-    keyPressSurface[KEY_PRESS_SURFACE_UP] = loadSurface("bmp/up.bmp");
-    if (surfaceFailure(keyPressSurface[KEY_PRESS_SURFACE_UP])) {
+    keyPressTexture[KEY_PRESS_SURFACE_UP] = loadTexture("bmp/up.bmp");
+    if (textureFailure(keyPressTexture[KEY_PRESS_SURFACE_UP])) {
         success = false;
     }
-    keyPressSurface[KEY_PRESS_SURFACE_DOWN] = loadSurface("bmp/down.bmp");
-    if (surfaceFailure(keyPressSurface[KEY_PRESS_SURFACE_DOWN])) {
+    keyPressTexture[KEY_PRESS_SURFACE_DOWN] = loadTexture("bmp/down.bmp");
+    if (textureFailure(keyPressTexture[KEY_PRESS_SURFACE_DOWN])) {
         success = false;
     }
-    keyPressSurface[KEY_PRESS_SURFACE_LEFT] = loadSurface("bmp/left.bmp");
-    if (surfaceFailure(keyPressSurface[KEY_PRESS_SURFACE_LEFT])) {
+    keyPressTexture[KEY_PRESS_SURFACE_LEFT] = loadTexture("bmp/left.bmp");
+    if (textureFailure(keyPressTexture[KEY_PRESS_SURFACE_LEFT])) {
         success = false;
     }
-    keyPressSurface[KEY_PRESS_SURFACE_RIGHT] = loadSurface("bmp/right.bmp");
-    if (surfaceFailure(keyPressSurface[KEY_PRESS_SURFACE_RIGHT])) {
+    keyPressTexture[KEY_PRESS_SURFACE_RIGHT] = loadTexture("bmp/right.bmp");
+    if (textureFailure(keyPressTexture[KEY_PRESS_SURFACE_RIGHT])) {
         success = false;
     }
 
@@ -176,11 +189,11 @@ bool loadMedia() {
 
 void close() {
     std::cout << "Shuttin' it down.\n";
-	SDL_FreeSurface(screenSurface);
-	screenSurface = NULL;
+	//SDL_FreeSurface(screenSurface);
+	//screenSurface = NULL;
     SDL_DestroyTexture(currentTexture);
     currentTexture = NULL;
-	SDL_FreeSurface(splash);
+	SDL_DestroyTexture(splash);
 	splash = NULL;
 
     SDL_DestroyRenderer(renderman);
@@ -204,6 +217,7 @@ SDL_Texture* loadTexture(std::string path) {
     return theTexture;
 }
 
+//This function does not optimize anymore
 SDL_Surface* loadSurface(std::string path) { //Returns a surface from a bitmap at a path
     SDL_Surface* optimizedSurface = NULL;
     SDL_Surface* loadedSurface = SDL_LoadBMP(path.c_str());
@@ -211,7 +225,7 @@ SDL_Surface* loadSurface(std::string path) { //Returns a surface from a bitmap a
         std::cout << "Unable to load " << path << " SDL Error: " << SDL_GetError() << std::endl;
     }
     else {
-        optimizedSurface = SDL_ConvertSurface(loadedSurface, screenSurface->format, NULL);
+        //optimizedSurface = SDL_ConvertSurface(loadedSurface, screenSurface->format, NULL);
         SDL_FreeSurface(loadedSurface);
         std::cout << "Optimizing surface...\n";
     }
