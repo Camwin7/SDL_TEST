@@ -1,4 +1,4 @@
-#pragma comment(lib, "SDL/lib/x86/SDL2.lib")
+#pragma comment(lib, "C:/Users/Cameron/Documents/Programming/C++/SDL/SDL_TEST/SDL/lib/x86/SDL2.lib")
 #pragma comment(lib, "runtimeobject.lib")
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
