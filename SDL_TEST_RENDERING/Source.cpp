@@ -1,5 +1,5 @@
 #pragma comment(lib, "C:/Users/Cameron/Documents/Programming/C++/SDL/SDL_TEST/SDL/lib/x86/SDL2.lib")
-#pragma comment(lib, "runtimeobject.lib")
+//#pragma comment(lib, "runtimeobject.lib")
 #include <SDL.h>
 #include <iostream>
 #include <string>
@@ -22,10 +22,13 @@ SDL_Surface* screenSurface = NULL;
 SDL_Surface* splash = NULL;
 SDL_Surface* keyPressSurface[KEY_PRESS_SURFACE_COUNT];
 SDL_Surface* currentSurface = NULL;
+SDL_Texture* currentTexture = NULL;
+SDL_Renderer* renderman = NULL;
 
 bool init();
 bool loadMedia();
 void close();
+SDL_Texture* loadTexture(std::string path);
 SDL_Surface* loadSurface(std::string path);
 bool surfaceFailure(SDL_Surface* surface);
 std::vector<int> keyPressStack;
@@ -114,8 +117,16 @@ bool init() {
 			std::cout << "Window could not be created! SDL_Error: \n   " << SDL_GetError();
 		} 
 		else { //Window was created
-			screenSurface = SDL_GetWindowSurface(window);
-            std::cout << "Oh boy we made a window.\n";
+			//screenSurface = SDL_GetWindowSurface(window);
+            renderman = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            if (renderman == NULL) {
+                std::cout << "Renderer initialized.\n";
+            }
+            else {
+                SDL_SetRenderDrawColor(renderman, 0xff, 0xff, 0xff, 0xff);
+                //maybe png loading someday
+            }
+            std::cout << "Oh boy we made a window. Now with more Renderer.\n";
 		}
 	}
 	return success;
@@ -167,12 +178,30 @@ void close() {
     std::cout << "Shuttin' it down.\n";
 	SDL_FreeSurface(screenSurface);
 	screenSurface = NULL;
-
+    SDL_DestroyTexture(currentTexture);
+    currentTexture = NULL;
 	SDL_FreeSurface(splash);
 	splash = NULL;
 
+    SDL_DestroyRenderer(renderman);
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+SDL_Texture* loadTexture(std::string path) {
+    SDL_Texture* theTexture = NULL;
+    SDL_Surface* loadedSurface = SDL_LoadBMP(path.c_str());
+    if (loadedSurface == NULL) {
+        std::cout << "Unable to load " << path << " SDL Error: " << SDL_GetError() << std::endl;
+    }
+    else {
+        theTexture = SDL_CreateTextureFromSurface(renderman, loadedSurface);
+        if (theTexture == NULL) {
+            std::cout << "Unable to create texture; fucking shit. It was the one from " << path << std::endl;
+        }
+    }
+    SDL_FreeSurface(loadedSurface);
+    return theTexture;
 }
 
 SDL_Surface* loadSurface(std::string path) { //Returns a surface from a bitmap at a path
